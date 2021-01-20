@@ -1,5 +1,5 @@
 #include <SDL.h>
-#include <iostream>
+
 using namespace std;
 
 bool quit = false;
@@ -14,7 +14,7 @@ int bgH = 600;
 int bgWMin = 0;
 int bgHMin = 0;
 int batX = bgW / 2;
-int batY = bgH - 30;
+int batY = bgH - 20;
 
 bool aKeyDown = false;
 bool dKeyDown = false;
@@ -47,7 +47,6 @@ void EventHandler() {
 		dKeyDown = false;
 	}
 
-
 }
 
 void moveBall() {
@@ -72,7 +71,7 @@ int main(int argc, char ** argv) {
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 	SDL_Rect ballRect = { 20, 20, 20, 20 };  //https://wiki.libsdl.org/SDL_Rect
 	SDL_Rect bgRect = { 0,0, 800, 600 };
-	SDL_Rect batRect = { batX, batY, 60, 30 };
+	SDL_Rect batRect = { batX, batY, 60, 20 };
 
 	SDL_Surface *ball = SDL_LoadBMP("ball.bmp");			//https://stackoverflow.com/questions/21392755/difference-between-surface-and-texture-sdl-general
 	SDL_SetColorKey(ball, SDL_TRUE, SDL_MapRGB(ball->format, 0, 0, 0));  //https://lazyfoo.net/tutorials/SDL/10_color_keying/index.php  keyed out black
@@ -90,7 +89,7 @@ int main(int argc, char ** argv) {
 	while (!quit) {	//game loop
 		EventHandler();
 		SDL_Rect ballRect = { ballX, ballY, 20, 20 };
-		SDL_Rect batRect = { batX, batY, 60, 30 };	//need rects inside your game loop
+		SDL_Rect batRect = { batX, batY, 60, 20 };	//need rects inside your game loop
 		moveBall();
 		ballCollision();
 		SDL_RenderCopy(renderer, bgTexture, NULL, &bgRect);  //reloading the backround image every loop
