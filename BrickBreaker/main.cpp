@@ -1,6 +1,14 @@
 #include <SDL.h>
-
+#include "LTimer.h"
 using namespace std;
+
+const int SCREEN_FPS = 240;  //this type of small game is just going to have a high fps.  i could adjust velocities, but this causes jitter and the game just looks better this way
+const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
+
+//http://lazyfoo.net/tutorials/SDL/25_capping_frame_rate/index.php
+LTimer fpsTimer;
+LTimer capTimer;
+int countedFrames = 0;
 
 bool quit = false;
 SDL_Event event;
@@ -61,14 +69,21 @@ void ballCollision() {
 	if (ballY < bgHMin || ballY > bgH - 20) {
 		ballVelY = -ballVelY;
 	}
+	int ballScaling = 20;
+	if (ballY + ballScaling >= batY && ballY + ballScaling <= batY + 15 && ballX + ballScaling >= batX && ballX + ballScaling <= batX + 60) {
+		ballVelY = -ballVelY;
+	}
+
 }
 
 int main(int argc, char ** argv) {
 
+	fpsTimer.start();
+
 	SDL_Init(SDL_INIT_VIDEO);
 
 	SDL_Window* window = SDL_CreateWindow("My first game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, 0);
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	SDL_Rect ballRect = { 20, 20, 20, 20 };  //https://wiki.libsdl.org/SDL_Rect
 	SDL_Rect bgRect = { 0,0, 800, 600 };
 	SDL_Rect batRect = { batX, batY, 60, 20 };
@@ -87,7 +102,18 @@ int main(int argc, char ** argv) {
 	SDL_RenderCopy(renderer, bgTexture, NULL, &bgRect);
 	
 	while (!quit) {	//game loop
+		//Start cap timer
+		capTimer.start();
+
 		EventHandler();
+
+		//Calculate and correct fps
+		float avgFPS = countedFrames / (fpsTimer.getTicks() / 1000.f);
+		if (avgFPS > 2000000)
+		{
+			avgFPS = 0;
+		}
+
 		SDL_Rect ballRect = { ballX, ballY, 20, 20 };
 		SDL_Rect batRect = { batX, batY, 60, 20 };	//need rects inside your game loop
 		moveBall();
@@ -96,7 +122,17 @@ int main(int argc, char ** argv) {
 		SDL_RenderCopy(renderer, ballTexture, NULL, &ballRect);
 		SDL_RenderCopy(renderer, batTexture, NULL, &batRect);
 		SDL_RenderPresent(renderer);
-		SDL_Delay(3);  //slowing the frame rate
+		//SDL_Delay(3);  //slowing the frame rate
+
+		++countedFrames;
+
+		  //If frame finished early
+		int frameTicks = capTimer.getTicks();
+		if (frameTicks < SCREEN_TICKS_PER_FRAME){
+			//Wait remaining time
+			SDL_Delay(SCREEN_TICKS_PER_FRAME - frameTicks);
+		}
+	
 		SDL_RenderClear(renderer);
 	}
 	
