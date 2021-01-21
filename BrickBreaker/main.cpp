@@ -34,6 +34,9 @@ int bgHMin = 0;
 int batX = bgW / 2;
 int batY = bgH - 20;
 
+int delete_brick_count = 0;
+int no_of_bricks = 21;
+
 bool aKeyDown = false;
 bool dKeyDown = false;
 
@@ -100,14 +103,14 @@ void ballCollision() {
 	if (ballX < bgWMin || ballX > bgW - 20) {	//20 prevents the inner side of the ball rect to hit the wall
 		ballVelX = -ballVelX;
 	}
-	if (ballY < bgHMin || ballY > bgH - 20) {
+	if (ballY < bgHMin) {
 		ballVelY = -ballVelY;
 	}
 	int ballScaling = 20;  //accounts for the outer age of the rectangle for ball
 	if (ballY + ballScaling >= batY && ballY + ballScaling <= batY + 15 && ballX + ballScaling >= batX && ballX + ballScaling <= batX + 60) {
 		ballVelY = -ballVelY;
 	}
-
+	
 }
 
 bool ball_brick_collision_detect(SDL_Rect brick , SDL_Rect ball) {  //brick , ball
@@ -132,6 +135,7 @@ void ball_brick_collision() {
 			a = ball_brick_collision_detect(brickRect[i][j], ballRect);
 			if (a == true) {
 				brickRect[i][j].x = 1000;
+				delete_brick_count++;
 				ballVelY = -ballVelY;
 				a = false;  //not necessary i don't thinkg   TODO: ball sometimes breaks through more than one brick
 			}
@@ -140,7 +144,8 @@ void ball_brick_collision() {
 	
 }
 
-int main(int argc, char ** argv) {
+
+int main(int argc, char ** argv) {  //SDL requires command line arguments
 
 	fpsTimer.start();
 
@@ -210,6 +215,18 @@ int main(int argc, char ** argv) {
 		ball_brick_collision();
 		moveBall();
 
+		if (ballY > bgH + 20) {
+			quit = true;
+		}
+
+
+		if (delete_brick_count >= no_of_bricks) {
+			cout << "You won!" << endl;
+			cout << "destroying all textures and and freeing surfaces...." << endl;
+
+			quit = true;
+		}
+
 		SDL_RenderCopy(renderer, bgTexture, NULL, &bgRect);  //reloading the backround image every loop
 		SDL_RenderCopy(renderer, ballTexture, NULL, &ballRect);
 		SDL_RenderCopy(renderer, batTexture, NULL, &batRect);
@@ -250,6 +267,17 @@ int main(int argc, char ** argv) {
 	
 		SDL_RenderClear(renderer);
 	}
+
+	SDL_DestroyTexture(batTexture);
+	SDL_DestroyTexture(brickTexture);
+	SDL_DestroyTexture(bgTexture);
+	SDL_DestroyTexture(ballTexture);
+	SDL_FreeSurface(bat);
+	SDL_FreeSurface(brick);
+	SDL_FreeSurface(bg);
+	SDL_FreeSurface(ball);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
 	
 	SDL_Quit();
 
